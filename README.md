@@ -59,6 +59,7 @@ cd ~/marketplace-bot
 ```
 
 `instalar.sh` crea el entorno de Python (`.venv`), instala las dependencias y copia los archivos de `ejemplos/` a la carpeta principal.
+Usa [uv](https://docs.astral.sh/uv/) si lo tienes; si no, necesita `python3-venv` (`sudo apt install python3-venv`).
 
 > Para el ícono junto al reloj, en Ubuntu/Mint puede hacer falta: `sudo apt install gir1.2-ayatanaappindicator3-0.1`
 

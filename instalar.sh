@@ -3,8 +3,18 @@
 set -e
 cd "$(dirname "$(readlink -f "$0")")"
 command -v brave-browser >/dev/null || command -v brave >/dev/null || echo "⚠ Instala Brave: https://brave.com/linux/"
-python3 -m venv --system-site-packages .venv
-.venv/bin/pip install -q -r requirements.txt
+UV=$(command -v uv || echo "$HOME/.local/bin/uv")
+if [ -x "$UV" ]; then
+    "$UV" venv -q --system-site-packages .venv
+    "$UV" pip install -q --python .venv/bin/python -r requirements.txt
+elif python3 -m venv --system-site-packages .venv 2>/dev/null; then
+    .venv/bin/pip install -q -r requirements.txt
+else
+    rm -rf .venv
+    echo "❌ Falta el módulo venv. Instálalo con:  sudo apt install python3-venv"
+    echo "   (o instala uv:  curl -LsSf https://astral.sh/uv/install.sh | sh ) y vuelve a correr ./instalar.sh"
+    exit 1
+fi
 for f in productos publicados negocio config_ia telegram estilo_dueno estilo_conversaciones; do
     [ -f "$f.json" ] || cp "ejemplos/$f.json" "$f.json"
 done
