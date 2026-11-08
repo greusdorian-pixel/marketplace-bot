@@ -1,0 +1,31 @@
+{
+  "modelo": "openai/gpt-oss-120b",
+  "dias_renovar": 7,
+  "recrear": true,
+  "dias_recrear": 21,
+  "clics_max_recrear": 15,
+  "max_recrear_por_dia": 3,
+  "max_renovar_por_vez": 10,
+  "pausa_min": [
+    2,
+    5
+  ],
+  "groq_api_key": "",
+  "dias_sin_clics": 4,
+  "chat": {
+    "activo": true,
+    "modo": "auto",
+    "copiar_a_telegram": true,
+    "rebaja_max": 10,
+    "rebaja_max_pct_baratos": 25,
+    "max_por_vuelta": 3,
+    "cada_min": [
+      4,
+      8
+    ],
+    "horario": [
+      "07:00",
+      "22:30"
+    ]
+  }
+}

@@ -1,0 +1,4 @@
+playwright>=1.40
+pillow>=10
+pystray>=0.19
+reportlab>=4

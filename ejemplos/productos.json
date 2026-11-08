@@ -1,0 +1,12 @@
+[
+  {
+    "id": "01",
+    "titulo": "Taladro percutor 600W con maletín",
+    "precio": 35,
+    "categoria": "Herramientas",
+    "estado": "Nuevo",
+    "descripcion": "Taladro percutor 600W - Marca Ejemplo\n\n- Mandril de 13 mm\n- Velocidad variable y reversa\n- Incluye maletín y brocas\n\nPrecio en tienda: $45 - $60\nRemate por liquidación. Precio negociable.\nPregunta por disponibilidad.",
+    "fotos": ["fotos/01/foto1.jpg"],
+    "precio_minimo": 28
+  }
+]

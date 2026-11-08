@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel Marketplace</title>
+<script>
+  try { const a = JSON.parse(localStorage.getItem("apariencia")) || {};
+        for (const k of ["tema", "letra", "densidad", "esquinas"]) if (a[k]) document.documentElement.dataset[k] = a[k]; } catch {}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a1324; --bg-2: #0d182d; --card: #111e37; --card-2: #15243f; --line: #1e2e4f; --line-2: #2a3d63;
+    --text: #e8ecf4; --muted: #8592ad; --dim: #5d6a86;
+    --gold: #c9a656; --gold-2: #e3c67f; --on-gold: #0a1324;
+    --ok: #6cc59a; --danger: #e27b6f;
+    --log-bg: #070e1b; --log-text: #c4cede; --shade: #0a1324; --scheme: dark;
+    --serif: "Playfair Display", Georgia, serif;
+    --sans: Inter, system-ui, "Segoe UI", sans-serif;
+    --radius: 10px; --r-sm: 8px; --r-pill: 99px;
+  }
+  /* Derivadas: cada tema solo define los colores base */
+  :root {
+    --gold-soft: color-mix(in srgb, var(--gold) 13%, transparent);
+    --gold-line: color-mix(in srgb, var(--gold) 38%, transparent);
+  }
+
+  /* Temas */
+  html[data-tema="esmeralda"] {
+    --bg: #08150f; --bg-2: #0b1b14; --card: #10241b; --card-2: #142c21; --line: #1c3a2c; --line-2: #285040;
+    --text: #e7f0ea; --muted: #86a596; --dim: #5a7a6b;
+    --gold: #cfae5e; --gold-2: #e6cb86; --on-gold: #08150f; --log-bg: #050e0a; --log-text: #c3d8cc; --shade: #08150f;
+  }
+  html[data-tema="borgona"] {
+    --bg: #160a0f; --bg-2: #1b0d13; --card: #241219; --card-2: #2c1620; --line: #3b1f2a; --line-2: #552c3c;
+    --text: #f3e9ec; --muted: #b0909b; --dim: #7f6069;
+    --gold: #d9a87a; --gold-2: #ecc59f; --on-gold: #160a0f; --log-bg: #0e0609; --log-text: #e0cbd2; --shade: #160a0f;
+  }
+  html[data-tema="grafito"] {
+    --bg: #0f1012; --bg-2: #131416; --card: #1a1b1e; --card-2: #202226; --line: #2a2c31; --line-2: #3a3d44;
+    --text: #eceef1; --muted: #9a9fa8; --dim: #6b7079;
+    --gold: #cfd4dc; --gold-2: #ffffff; --on-gold: #0f1012; --ok: #8fd1b0; --log-bg: #08090a; --log-text: #c9ccd2; --shade: #0f1012;
+  }
+  html[data-tema="marfil"] {
+    --bg: #f5f0e6; --bg-2: #efe8db; --card: #fffcf6; --card-2: #fbf6ec; --line: #e4dccb; --line-2: #d3c8b2;
+    --text: #1b2540; --muted: #6f6a5e; --dim: #a39c8c;
+    --gold: #a07c2c; --gold-2: #7f6020; --on-gold: #fffcf6; --ok: #2f8a5e; --danger: #b8473a;
+    --log-bg: #1b2540; --log-text: #e8e4da; --shade: #1b2540; --scheme: light;
+  }
+  html[data-tema="nordico"] {
+    --bg: #f2f4f7; --bg-2: #e9edf2; --card: #ffffff; --card-2: #f7f9fb; --line: #dde3ea; --line-2: #c6cfda;
+    --text: #13213b; --muted: #637087; --dim: #9aa5b6;
+    --gold: #1f3d6e; --gold-2: #2b5596; --on-gold: #ffffff; --ok: #23875a; --danger: #c0473b;
+    --log-bg: #13213b; --log-text: #dfe6f0; --shade: #13213b; --scheme: light;
+  }
+
+  /* Tipografía, densidad, esquinas */
+  [data-letra="moderna"] { --serif: var(--sans); }
+  [data-letra="clasica"] { --serif: Georgia, "Times New Roman", serif; }
+  [data-esquinas="rectas"] { --radius: 3px; --r-sm: 2px; --r-pill: 3px; }
+  [data-densidad="compacta"] main { grid-template-columns: repeat(auto-fill, minmax(185px, 1fr)); gap: 12px; }
+  [data-densidad="compacta"] .body { padding: 10px 12px 12px; gap: 6px; }
+  [data-densidad="compacta"] .title { font-size: 12.5px; }
+  [data-densidad="compacta"] .price { font-size: 18px; }
+  [data-densidad="compacta"] .tag { font-size: 10px; padding: 1px 7px; }
+  [data-densidad="compacta"] .row button { padding: 6px; font-size: 11.5px; }
+  * { box-sizing: border-box; }
+  html { color-scheme: var(--scheme); }
+  body { font-variant-numeric: lining-nums; margin: 0; background: var(--bg); color: var(--text); font: 13.5px/1.5 var(--sans); -webkit-font-smoothing: antialiased; }
+  .stat b, .price, .idtag, #nSel, #dTitulo, .mono { font-variant-numeric: lining-nums; font-feature-settings: "lnum" 1; }
+  ::selection { background: var(--gold); color: var(--bg); }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: var(--r-pill); border: 2px solid var(--bg); }
+
+  /* Cabecera */
+  header { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(10px);
+           border-bottom: 1px solid var(--line); }
+  header::after { content: ""; display: block; height: 1px; background: linear-gradient(90deg, transparent, var(--gold-line), transparent); }
+  .head { max-width: 1440px; margin: 0 auto; padding: 16px 28px; display: flex; flex-wrap: wrap; gap: 20px; align-items: center; }
+  .brand { display: flex; align-items: center; gap: 12px; margin-right: 8px; }
+  .mono { width: 38px; height: 38px; border: 1px solid var(--gold); border-radius: 50%; display: grid; place-items: center;
+          font: 600 20px/1 var(--serif); color: var(--gold); }
+  h1 { font: 600 20px/1.1 var(--serif); letter-spacing: .01em; margin: 0; }
+  .sub { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .stats { display: flex; gap: 26px; align-items: flex-end; padding-left: 20px; border-left: 1px solid var(--line); }
+  .stat { display: grid; gap: 1px; }
+  .stat b { font: 600 22px/1 var(--serif); color: var(--text); }
+  .stat.gold b { color: var(--gold); }
+  .stat span, .label { font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .progreso { width: 140px; display: grid; gap: 6px; }
+  .progreso .pista { height: 3px; background: var(--line); border-radius: var(--r-pill); overflow: hidden; }
+  .progreso .pista i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--gold), var(--gold-2)); transition: width .4s; }
+  .spacer { flex: 1; }
+  #estadoBot { font-size: 12px; color: var(--muted); }
+  .running { color: var(--gold); display: inline-flex; align-items: center; gap: 8px; }
+  .running::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--gold); animation: latido 1.6s infinite; }
+  @keyframes latido { 0% { box-shadow: 0 0 0 0 var(--gold-line); } 70% { box-shadow: 0 0 0 8px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+
+  /* Controles */
+  button { font: 500 12.5px/1 var(--sans); letter-spacing: .01em; border: 1px solid var(--line-2); background: transparent; color: var(--text);
+           border-radius: var(--r-sm); padding: 9px 14px; cursor: pointer; transition: border-color .15s, background .15s, color .15s; }
+  button:hover { border-color: var(--gold-line); color: var(--gold-2); }
+  button:disabled { opacity: .35; cursor: not-allowed; }
+  button:focus-visible { outline: 1px solid var(--gold); outline-offset: 2px; }
+  button:disabled:hover { border-color: var(--line-2); color: var(--text); }
+  button.primary { background: var(--gold); border-color: var(--gold); color: var(--on-gold); font-weight: 600; }
+  button.primary:hover:not(:disabled) { background: var(--gold-2); border-color: var(--gold-2); color: var(--on-gold); }
+  button.ghost { border-color: transparent; color: var(--muted); }
+  button.ghost:hover { color: var(--gold-2); border-color: transparent; }
+  button.outline-gold { border-color: var(--gold-line); color: var(--gold); }
+  button.danger:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); }
+  .count { display: inline-block; min-width: 18px; padding: 2px 6px; margin-left: 6px; border-radius: var(--r-pill); background: var(--gold); color: var(--bg);
+           font-size: 10.5px; font-weight: 600; }
+  .count:empty { display: none; }
+  input[type=search], input[type=number], input[type=text], input[type=time], select, textarea {
+    font: inherit; color: var(--text); background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 8px 11px; outline: none;
+    transition: border-color .15s; }
+  input:focus, select:focus, textarea:focus { border-color: var(--gold-line); }
+  input[type=time]::-webkit-calendar-picker-indicator { filter: invert(.7) sepia(1) saturate(3) hue-rotate(5deg); }
+
+  .toolbar { max-width: 1440px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 22px 28px 6px; }
+  .tabs { display: flex; gap: 22px; margin-right: 12px; }
+  .tabs button { border: none; padding: 8px 0; border-radius: 0; color: var(--muted); border-bottom: 1px solid transparent; font-size: 13px; }
+  .tabs button:hover { color: var(--text); }
+  .tabs button.on { color: var(--gold); border-bottom-color: var(--gold); }
+  .buscar { position: relative; }
+  .buscar input { min-width: 260px; padding-left: 32px; }
+  .buscar::before { content: ""; position: absolute; left: 12px; top: 50%; width: 9px; height: 9px; border: 1.5px solid var(--dim);
+                    border-radius: 50%; transform: translateY(-60%); }
+  .buscar::after { content: ""; position: absolute; left: 21px; top: 58%; width: 5px; height: 1.5px; background: var(--dim); transform: rotate(45deg); }
+
+  /* Grilla de productos */
+  main { max-width: 1440px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px;
+         padding: 16px 28px 160px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+          display: flex; flex-direction: column; cursor: pointer; transition: border-color .2s, transform .2s, box-shadow .2s; }
+  .card:hover { border-color: var(--line-2); transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+  .card.sel { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 10px 30px rgba(0,0,0,.35); }
+  .card.done { cursor: default; }
+  .card.done .thumb img { filter: saturate(.55) brightness(.8); }
+  .thumb { position: relative; aspect-ratio: 4/3; background: var(--bg-2); }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .thumb::after { content: ""; position: absolute; inset: auto 0 0 0; height: 45%; background: linear-gradient(transparent, color-mix(in srgb, var(--shade) 75%, transparent)); pointer-events: none; }
+  .check { position: absolute; top: 10px; left: 10px; width: 22px; height: 22px; border-radius: 50%; z-index: 1;
+           background: color-mix(in srgb, var(--shade) 55%, transparent); border: 1px solid rgba(255,255,255,.55); display: grid; place-items: center;
+           font-size: 12px; font-weight: 700; color: var(--bg); backdrop-filter: blur(4px); }
+  .card.sel .check { background: var(--gold); border-color: var(--gold); }
+  .badge { position: absolute; top: 10px; right: 10px; z-index: 1; font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+           padding: 4px 9px; border-radius: var(--r-pill); background: color-mix(in srgb, var(--shade) 72%, transparent); color: #f1e2b8; border: 1px solid var(--gold-line); backdrop-filter: blur(4px); }
+  .badge.ok { color: var(--ok); border-color: rgba(108,197,154,.4); }
+  .badge.warn { color: #e8a33d; border-color: rgba(232,163,61,.5); }
+  .sesion { font-size: 12px; padding: 4px 10px; border-radius: var(--r-pill); border: 1px solid currentColor; white-space: nowrap; }
+  .sesion.si { color: var(--ok); } .sesion.no { color: #e5534b; } .sesion:empty { display: none; }
+  .nfotos { position: absolute; bottom: 9px; right: 10px; z-index: 1; font-size: 11px; color: rgba(255,255,255,.85); }
+  .idtag { position: absolute; bottom: 9px; left: 12px; z-index: 1; font: 600 14px/1 var(--serif); color: #f1e2b8; letter-spacing: .04em; }
+  .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .title { font-weight: 500; font-size: 13.5px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font-size: 10.5px; color: var(--muted); border: 1px solid var(--line); border-radius: var(--r-pill); padding: 2px 8px; }
+  .precio-fila { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding-top: 8px; border-top: 1px solid var(--line); margin-top: auto; }
+  .price { font: 600 21px/1 var(--serif); color: var(--gold); }
+  .price small { font: 500 11px var(--sans); color: var(--muted); margin-right: 2px; }
+  .price.vacio { font: 500 12px var(--sans); color: var(--danger); }
+  .fecha { font-size: 11px; color: var(--muted); text-align: right; }
+  .row { display: flex; gap: 8px; }
+  .row button { flex: 1; padding: 8px; font-size: 12px; }
+
+  /* Barra inferior */
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: color-mix(in srgb, var(--bg-2) 96%, transparent); backdrop-filter: blur(10px);
+         border-top: 1px solid var(--line); }
+  .bar::before { content: ""; display: block; height: 1px; background: linear-gradient(90deg, transparent, var(--gold-line), transparent); }
+  .bar-in { max-width: 1440px; margin: 0 auto; padding: 12px 28px; display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+  .grupo { display: flex; align-items: center; gap: 8px; }
+  .grupo + .grupo { padding-left: 16px; border-left: 1px solid var(--line); }
+  #nSel { font: 600 18px/1 var(--serif); color: var(--gold); }
+  .pausa { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12.5px; }
+  .pausa[hidden] { display: none; }
+  .pausa input[type=number] { width: 58px; padding: 6px 8px; text-align: center; }
+  .pausa input[type=time] { padding: 6px 8px; }
+  .bar-in > button { padding: 9px 12px; }
+  #cadaCuanto { color: var(--gold-2); font-size: 12px; }
+  .ritmo { display: inline-flex; padding: 3px; gap: 2px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg-2); }
+  .ritmo button { border: none; border-radius: 6px; padding: 6px 12px; color: var(--muted); }
+  .ritmo button.on { background: var(--gold-soft); color: var(--gold); }
+
+  /* Registro */
+  #log { position: fixed; right: 20px; bottom: 84px; width: min(560px, calc(100vw - 32px)); max-height: 48vh; overflow: auto; margin: 0;
+         background: var(--log-bg); color: var(--log-text); font: 12px/1.6 Consolas, "Cascadia Mono", monospace; padding: 14px 16px; border-radius: var(--radius);
+         border: 1px solid var(--line-2); border-top: 2px solid var(--gold); white-space: pre-wrap; display: none; z-index: 7;
+         box-shadow: 0 20px 50px rgba(0,0,0,.5); }
+  #log.open { display: block; }
+
+  /* Editor */
+  dialog { border: 1px solid var(--line-2); border-top: 2px solid var(--gold); border-radius: calc(var(--radius) + 4px); padding: 0;
+           width: min(680px, calc(100vw - 24px)); background: var(--card); color: var(--text); box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+  dialog::backdrop { background: rgba(0, 0, 0, .55); backdrop-filter: blur(3px); }
+  .dlg { padding: 22px 24px; display: grid; gap: 14px; }
+  #dTitulo { font: 600 22px/1.1 var(--serif); color: var(--gold); }
+  .dlg label { display: grid; gap: 6px; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .dlg label > * { letter-spacing: normal; text-transform: none; font-size: 13.5px; }
+  .dlg textarea { min-height: 200px; resize: vertical; line-height: 1.55; }
+  .strip { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+  .strip img { height: 84px; border-radius: var(--r-sm); border: 1px solid var(--line); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .dlg .row { justify-content: flex-end; margin-top: 4px; }
+  .dlg .row button { flex: 0 0 auto; padding: 10px 20px; }
+
+  .toast { position: fixed; top: 86px; left: 50%; transform: translateX(-50%); background: var(--card-2); color: var(--text);
+           border: 1px solid var(--gold-line); padding: 10px 18px; border-radius: var(--r-pill); z-index: 10; display: none; font-size: 12.5px;
+           box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+  .empty { grid-column: 1/-1; text-align: center; color: var(--muted); padding: 80px 20px; font: 500 20px var(--serif); }
+  .empty::before { content: ""; display: block; width: 40px; height: 1px; background: var(--gold); margin: 0 auto 18px; }
+
+  /* Apariencia */
+  #dlgTema { margin: 0 0 0 auto; height: 100vh; max-height: 100vh; width: min(400px, 100vw); border-radius: 0;
+             border: none; border-left: 1px solid var(--line-2); border-top: none; }
+  #dlgTema[open] { animation: entrar .25s ease-out; }
+  @keyframes entrar { from { transform: translateX(30px); opacity: 0; } }
+  .ap { padding: 24px; display: grid; gap: 26px; }
+  .ap-head { display: flex; align-items: center; justify-content: space-between; }
+  .ap-head h2 { font: 600 22px/1 var(--serif); margin: 0; color: var(--gold); }
+  .ap section { display: grid; gap: 12px; }
+  .temas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .tema { padding: 0; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; text-align: left; background: var(--bg-2); }
+  .tema:hover { border-color: var(--gold-line); }
+  .tema.on { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
+  .tema .mini { height: 78px; padding: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; position: relative; }
+  .tema .mini i { border-radius: 4px; border: 1px solid; display: block; position: relative; }
+  .tema .mini i::after { content: ""; position: absolute; left: 6px; right: 40%; bottom: 7px; height: 4px; border-radius: 2px; background: var(--acento); }
+  .tema .mini b { position: absolute; left: 10px; right: 10px; top: 10px; height: 1px; }
+  .tema .nombre { display: flex; align-items: center; justify-content: space-between; padding: 9px 11px; font-size: 12px; color: var(--text);
+                  border-top: 1px solid var(--line); }
+  .tema .nombre small { color: var(--muted); font-size: 10.5px; }
+  .opciones { display: flex; padding: 3px; gap: 2px; border: 1px solid var(--line); border-radius: calc(var(--r-sm) + 1px); background: var(--bg-2); }
+  .opciones button { flex: 1; border: none; border-radius: calc(var(--r-sm) - 2px); padding: 9px 6px; color: var(--muted); }
+  .opciones button.on { background: var(--gold-soft); color: var(--gold); }
+  .opciones .muestra { display: block; font-size: 17px; margin-bottom: 4px; color: inherit; }
+  .ap-pie { font-size: 11.5px; color: var(--dim); }
+
+  @media (max-width: 760px) {
+    .head, .toolbar, main, .bar-in { padding-left: 16px; padding-right: 16px; }
+    .stats { padding-left: 0; border-left: none; gap: 18px; }
+    .progreso { display: none; }
+    .grupo + .grupo { padding-left: 0; border-left: none; }
+    .buscar input { min-width: 0; width: 100%; }
+    .grid2 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="head">
+    <div class="brand">
+      <div class="mono">M</div>
+      <div><h1>Marketplace</h1><div class="sub">Panel de publicación</div></div>
+    </div>
+    <div class="stats">
+      <div class="stat gold"><b id="sPend">0</b><span>Pendientes</span></div>
+      <div class="stat"><b id="sPub">0</b><span>Publicados</span></div>
+      <div class="stat"><b id="sTot">0</b><span>Total</span></div>
+      <div class="progreso"><span class="label" id="sPct">0% publicado</span><div class="pista"><i id="sBarra"></i></div></div>
+    </div>
+    <div class="spacer"></div>
+    <span id="estadoBot"></span>
+    <span id="sesionFb" class="sesion"></span>
+    <button id="btnNuevos" class="ghost" title="Abre la carpeta donde pones fotos de mercadería nueva">Mercadería nueva<span class="count" id="nNuevos"></span></button>
+    <button id="btnIA" class="ghost" title="Revisa, renueva y recrea tus anuncios solo">🤖 Gestor IA<span class="count" id="iaAuto"></span></button>
+    <button id="btnTema" class="ghost" title="Temas y apariencia">◐ Apariencia</button>
+    <button id="btnLogin" class="outline-gold">Iniciar sesión FB</button>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="tabs">
+    <button data-f="pend" class="on">Pendientes</button>
+    <button data-f="pub">Publicados</button>
+    <button data-f="all">Todos</button>
+  </div>
+  <div class="buscar"><input type="search" id="buscar" placeholder="Buscar producto…"></div>
+  <div class="spacer"></div>
+  <button id="selTodos" class="ghost">Seleccionar visibles</button>
+  <button id="selNada" class="ghost">Quitar selección</button>
+</div>
+
+<main id="grid"></main>
+
+<div class="bar">
+  <div class="bar-in">
+    <div class="grupo"><b id="nSel">0</b><span class="label" id="nSelTxt">seleccionados</span></div>
+    <div class="grupo">
+      <span class="label">Ritmo</span>
+      <div class="ritmo" title="Cómo repartir las publicaciones">
+        <button data-r="seguido" class="on">Seguido</button>
+        <button data-r="diario">Por día</button>
+      </div>
+      <span class="pausa" id="ritmoSeguido">cada <input type="number" id="pMin" value="3" min="0" step="0.5"> a
+        <input type="number" id="pMax" value="6" min="0" step="0.5"> min</span>
+      <span class="pausa" id="ritmoDiario" hidden><input type="number" id="porDia" value="3" min="1" max="50"> por día, de
+        <input type="time" id="hDesde" value="09:00"> a <input type="time" id="hHasta" value="21:00">
+        <span id="cadaCuanto"></span></span>
+    </div>
+    <div class="spacer"></div>
+    <button id="btnLog" class="ghost">Ver registro</button>
+    <button id="btnStop" class="danger" disabled>Detener</button>
+    <button id="btnProbar" disabled title="Llena el formulario del primer seleccionado sin publicar">Probar sin publicar</button>
+    <button id="btnPublicar" class="primary" disabled>Publicar seleccionados</button>
+  </div>
+</div>
+
+<pre id="log"></pre>
+<div class="toast" id="toast"></div>
+
+<dialog id="dlg">
+  <form method="dialog" class="dlg" id="frm">
+    <b id="dTitulo"></b>
+    <div class="strip" id="dFotos"></div>
+    <label>Título <input type="text" name="titulo" maxlength="99"></label>
+    <div class="grid2">
+      <label>Precio (USD, entero) <input type="number" name="precio" min="0"></label>
+      <label>Estado
+        <select name="estado">
+          <option>Nuevo</option><option>Usado - Como nuevo</option><option>Usado - Buen estado</option><option>Usado - Aceptable</option>
+        </select>
+      </label>
+      <label>Categoría <input type="text" name="categoria"></label>
+    </div>
+    <label>Descripción <textarea name="descripcion"></textarea></label>
+    <div class="row">
+      <button value="cancel" class="ghost">Cancelar</button>
+      <button value="ok" class="primary">Guardar</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlgIA">
+  <div class="ap" style="width:min(640px,92vw)">
+    <div class="ap-head">
+      <div><h2>Gestor IA</h2><span class="label">Renueva y refresca tus anuncios solo</span></div>
+      <button id="cerrarIA" class="ghost" aria-label="Cerrar">✕</button>
+    </div>
+    <section style="display:grid;gap:8px;font-size:13.5px;line-height:1.45">
+      <div>• <b>Renueva</b> los anuncios del bot cada 7 días (opción oficial de Facebook).</div>
+      <div>• Si un anuncio tiene 21 días o más y menos de 15 clics, la IA escribe <b>otro título y otra descripción</b>,
+        publica el nuevo y borra el viejo (máximo 2 por día).</div>
+      <div>• Tus anuncios que no son del bot <b>no se tocan</b>. Ajustes en <code>config_ia.json</code>.</div>
+    </section>
+    <section style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <label style="display:flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" id="iaAutoChk">
+        Automático (10:00 y 17:00 aprox.)</label>
+      <span class="label" id="iaProxima"></span>
+      <div class="spacer" style="flex:1"></div>
+      <button id="iaSimular" class="ghost" title="Solo mira y dice qué haría">Simular</button>
+      <button id="iaAhora" class="primary">Revisar ahora</button>
+    </section>
+    <section><span class="label">Últimas revisiones</span>
+      <pre id="iaLog" style="max-height:38vh;overflow:auto;margin:6px 0 0;font-size:12px;white-space:pre-wrap;background:var(--bg-2);padding:10px;border-radius:8px"></pre>
+    </section>
+  </div>
+</dialog>
+
+<dialog id="dlgTema">
+  <div class="ap">
+    <div class="ap-head">
+      <div><h2>Apariencia</h2><span class="label">Estilo del panel</span></div>
+      <button id="cerrarTema" class="ghost" aria-label="Cerrar">✕</button>
+    </div>
+    <section><span class="label">Tema</span><div class="temas" id="temas"></div></section>
+    <section><span class="label">Tipografía</span>
+      <div class="opciones" data-op="letra">
+        <button data-v="elegante"><span class="muestra" style="font-family:'Playfair Display',serif">Aa</span>Elegante</button>
+        <button data-v="moderna"><span class="muestra" style="font-family:Inter,sans-serif;font-weight:600">Aa</span>Moderna</button>
+        <button data-v="clasica"><span class="muestra" style="font-family:Georgia,serif">Aa</span>Clásica</button>
+      </div></section>
+    <section><span class="label">Densidad</span>
+      <div class="opciones" data-op="densidad">
+        <button data-v="comoda">Cómoda</button><button data-v="compacta">Compacta</button>
+      </div></section>
+    <section><span class="label">Esquinas</span>
+      <div class="opciones" data-op="esquinas">
+        <button data-v="redondeadas">Redondeadas</button><button data-v="rectas">Rectas</button>
+      </div></section>
+    <div class="ap-pie">Se guarda en este navegador. <button id="resetTema" class="ghost" style="padding:0;font-size:11.5px">Restablecer</button></div>
+  </div>
+</dialog>
+
+<script>
+const $ = s => document.querySelector(s);
+let datos = { productos: [], publicados: {}, log: [], corriendo: false };
+let filtro = "pend", sel = new Set(), editando = null, logAbierto = false;
+
+const api = async (ruta, body) => {
+  const r = await fetch(ruta, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {});
+  return r.json();
+};
+const toast = t => { const el = $("#toast"); el.textContent = t; el.style.display = "block"; clearTimeout(el._t); el._t = setTimeout(() => el.style.display = "none", 2500); };
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const foto = f => "/" + f.replace(/\\/g, "/");
+const fecha = iso => { const d = new Date(iso); return isNaN(d) ? "" :
+  d.toLocaleDateString("es", { day: "2-digit", month: "short" }) + " " + d.toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" }); };
+
+function visibles() {
+  const q = $("#buscar").value.trim().toLowerCase();
+  return datos.productos.filter(p => {
+    const pub = p.id in datos.publicados;
+    if (filtro === "pend" && pub) return false;
+    if (filtro === "pub" && !pub) return false;
+    return !q || (p.titulo + " " + p.descripcion).toLowerCase().includes(q);
+  });
+}
+
+function pintar() {
+  const pubs = datos.productos.filter(p => p.id in datos.publicados).length;
+  $("#sPub").textContent = pubs; $("#sTot").textContent = datos.productos.length;
+  $("#sPend").textContent = datos.productos.length - pubs;
+  const pct = datos.productos.length ? Math.round(pubs / datos.productos.length * 100) : 0;
+  $("#sPct").textContent = `${pct}% publicado`; $("#sBarra").style.width = pct + "%";
+  $("#nNuevos").textContent = datos.nuevos || "";
+
+  const lista = visibles();
+  $("#grid").innerHTML = lista.length ? lista.map(p => {
+    const pub = datos.publicados[p.id];
+    return `<article class="card ${sel.has(p.id) ? "sel" : ""} ${pub ? "done" : ""}" data-id="${p.id}">
+      <div class="thumb">
+        <img loading="lazy" src="${foto(p.fotos[0])}" alt="">
+        ${pub ? "" : `<span class="check">${sel.has(p.id) ? "✓" : ""}</span>`}
+        <span class="badge ${pub ? (pub.verificar ? "warn" : "ok") : ""}">${pub ? (pub.verificar ? "Verificar" : "Publicado") : "Pendiente"}</span>
+        <span class="idtag">Nº ${p.id}</span>
+        <span class="nfotos">${p.fotos.length} foto${p.fotos.length === 1 ? "" : "s"}</span>
+      </div>
+      <div class="body">
+        <span class="title" title="${esc(p.titulo)}">${esc(p.titulo)}</span>
+        <div class="tags">
+          ${p.categoria ? `<span class="tag">${esc(p.categoria)}</span>` : ""}
+          ${p.estado ? `<span class="tag">${esc(p.estado)}</span>` : ""}
+        </div>
+        <div class="precio-fila">
+          ${p.precio == null ? `<span class="price vacio">Sin precio</span>` : `<span class="price"><small>USD</small>${p.precio}</span>`}
+          <span class="fecha">${pub ? `Publicado<br>${fecha(pub.fecha)}${pub.manual ? " · manual" : ""}` : ""}</span>
+        </div>
+        <div class="row">
+          <button data-a="editar">Editar</button>
+          ${pub && pub.verificar ? `<button data-a="confirmar" title="Ya revisé en Facebook y sí salió">Sí salió</button>` : ""}
+          <button data-a="marcar">${pub ? "Desmarcar" : "Ya publicado"}</button>
+        </div>
+      </div>
+    </article>`;
+  }).join("") : `<div class="empty">No hay productos en esta vista.</div>`;
+
+  const n = sel.size;
+  $("#nSel").textContent = n;
+  $("#nSelTxt").textContent = `seleccionado${n === 1 ? "" : "s"}`;
+  $("#btnPublicar").disabled = !n || datos.corriendo;
+  $("#btnProbar").disabled = !n || datos.corriendo;
+  $("#btnStop").disabled = !datos.corriendo;
+  $("#btnLogin").disabled = datos.corriendo;
+  const s = $("#sesionFb");
+  s.className = "sesion " + (datos.sesion ? "si" : datos.sesion === false ? "no" : "");
+  s.textContent = datos.sesion ? "● Facebook conectado" : datos.sesion === false ? "● Sin sesión de Facebook" : "";
+  $("#btnLogin").title = datos.sesion === false ? "Primero inicia sesión, si no el bot no puede publicar" : "";
+}
+
+function pintarLog() {
+  const proxima = datos.corriendo && [...datos.log].reverse().find(l => l.includes("Próxima publicación:"));
+  $("#estadoBot").innerHTML = datos.corriendo ? `<span class="running">● ${esc(datos.tarea)}</span>` +
+    (proxima ? ` · próxima: ${esc(proxima.split("Próxima publicación:")[1].trim())}` : "") : "";
+  const el = $("#log"), abajo = el.scrollTop + el.clientHeight >= el.scrollHeight - 20;
+  el.textContent = datos.log.join("\n") || "Sin actividad todavía.";
+  if (abajo) el.scrollTop = el.scrollHeight;
+}
+
+let firma = "";
+async function refrescar() {
+  const antes = datos.corriendo;
+  datos = await api("/api/datos");
+  for (const id of [...sel]) if (id in datos.publicados) sel.delete(id);
+  const nueva = JSON.stringify([datos.productos, datos.publicados, datos.corriendo, datos.tarea, datos.nuevos, datos.sesion]);
+  if (!editando && nueva !== firma) { firma = nueva; pintar(); }
+  pintarLog();
+  pintarIA();
+  if (antes && !datos.corriendo) toast("El bot terminó");
+}
+
+$("#grid").addEventListener("click", async e => {
+  const card = e.target.closest(".card"); if (!card) return;
+  const id = card.dataset.id, p = datos.productos.find(x => x.id === id);
+  const accion = e.target.closest("button")?.dataset.a;
+  if (accion === "editar") return abrirEditor(p);
+  if (accion === "confirmar") { await api("/api/confirmar", { id }); toast("Confirmado"); return refrescar(); }
+  if (accion === "marcar") {
+    const pub = !(id in datos.publicados);
+    await api("/api/marcar", { id, titulo: p.titulo, publicado: pub });
+    sel.delete(id); toast(pub ? "Marcado como publicado" : "Vuelve a pendientes");
+    return refrescar();
+  }
+  if (id in datos.publicados) return;
+  sel.has(id) ? sel.delete(id) : sel.add(id);
+  pintar();
+});
+
+function abrirEditor(p) {
+  editando = p.id;
+  const f = $("#frm");
+  $("#dTitulo").textContent = `Editar #${p.id}`;
+  $("#dFotos").innerHTML = p.fotos.map(x => `<img src="${foto(x)}" alt="">`).join("");
+  f.titulo.value = p.titulo; f.precio.value = p.precio ?? ""; f.estado.value = p.estado;
+  f.categoria.value = p.categoria; f.descripcion.value = p.descripcion;
+  $("#dlg").showModal();
+}
+$("#dlg").addEventListener("close", async () => {
+  const f = $("#frm");
+  if ($("#dlg").returnValue === "ok") {
+    await api("/api/guardar", { id: editando, titulo: f.titulo.value, precio: f.precio.value, estado: f.estado.value,
+                                categoria: f.categoria.value, descripcion: f.descripcion.value });
+    toast("Guardado");
+  }
+  editando = null; refrescar();
+});
+
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".tabs button").forEach(x => x.classList.toggle("on", x === b));
+  filtro = b.dataset.f; pintar();
+});
+$("#buscar").oninput = pintar;
+$("#selTodos").onclick = () => { visibles().forEach(p => { if (!(p.id in datos.publicados) && p.precio != null) sel.add(p.id); }); pintar(); };
+$("#selNada").onclick = () => { sel.clear(); pintar(); };
+
+const ordenSel = () => datos.productos.map(p => p.id).filter(id => sel.has(id));
+const abrirLog = () => { logAbierto = true; $("#log").classList.add("open"); $("#btnLog").textContent = "Ocultar registro"; };
+$("#btnLog").onclick = () => { logAbierto = !logAbierto; $("#log").classList.toggle("open", logAbierto); $("#btnLog").textContent = logAbierto ? "Ocultar registro" : "Ver registro"; };
+
+$("#btnProbar").onclick = async () => {
+  const r = await api("/api/ejecutar", { ids: ordenSel().slice(0, 1), modo: "prueba" });
+  r.ok ? (toast("Abriendo Brave en modo prueba…"), abrirLog()) : toast(r.error); refrescar();
+};
+// Ritmo de publicación: "seguido" (pausa en minutos) o "diario" (N por día dentro de un horario)
+const guardado = (() => { try { return JSON.parse(localStorage.getItem("ritmo")) || {}; } catch { return {}; } })();
+let ritmo = guardado.ritmo || "seguido";
+for (const k of ["pMin", "pMax", "porDia", "hDesde", "hHasta"]) if (guardado[k] != null) $("#" + k).value = guardado[k];
+
+const minutos = t => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
+function pintarRitmo() {
+  document.querySelectorAll(".ritmo button").forEach(b => b.classList.toggle("on", b.dataset.r === ritmo));
+  $("#ritmoSeguido").hidden = ritmo !== "seguido";
+  $("#ritmoDiario").hidden = ritmo !== "diario";
+  const franja = minutos($("#hHasta").value || "0:0") - minutos($("#hDesde").value || "0:0");
+  const n = +$("#porDia").value || 1;
+  $("#cadaCuanto").textContent = franja <= 0 ? "· horario inválido" : `· ≈ cada ${(franja / n / 60).toFixed(1)} h`;
+  const vals = { ritmo };
+  for (const k of ["pMin", "pMax", "porDia", "hDesde", "hHasta"]) vals[k] = $("#" + k).value;
+  try { localStorage.setItem("ritmo", JSON.stringify(vals)); } catch {}
+}
+document.querySelectorAll(".ritmo button").forEach(b => b.onclick = () => { ritmo = b.dataset.r; pintarRitmo(); });
+document.querySelectorAll(".pausa input").forEach(i => i.oninput = pintarRitmo);
+pintarRitmo();
+
+$("#btnPublicar").onclick = async () => {
+  const ids = ordenSel();
+  let cuerpo, aviso;
+  if (ritmo === "diario") {
+    const porDia = Math.max(1, +$("#porDia").value || 1), desde = $("#hDesde").value, hasta = $("#hHasta").value;
+    if (!desde || !hasta || minutos(hasta) <= minutos(desde)) return toast("El horario debe terminar después de empezar");
+    const dias = Math.ceil(ids.length / porDia);
+    cuerpo = { ids, modo: "publicar", ritmo: "diario", porDia, desde, hasta };
+    aviso = `Se publicarán ${ids.length} anuncio(s): ${porDia} por día entre ${desde} y ${hasta} (~${dias} día(s)).\n\n` +
+            `Deja el panel abierto y la PC encendida (sin suspender) mientras dure.`;
+  } else {
+    const pausa = [+$("#pMin").value || 0, Math.max(+$("#pMax").value || 0, +$("#pMin").value || 0)];
+    cuerpo = { ids, modo: "publicar", pausa };
+    aviso = `Se publicarán ${ids.length} anuncio(s) en tu Marketplace, con ${pausa[0]}–${pausa[1]} min entre cada uno.`;
+  }
+  if (!confirm(aviso + "\n\n¿Continuar?")) return;
+  const r = await api("/api/ejecutar", cuerpo);
+  r.ok ? (toast("Publicando…"), abrirLog()) : toast(r.error); refrescar();
+};
+$("#btnStop").onclick = async () => { await api("/api/detener", {}); toast("Detenido"); refrescar(); };
+$("#btnLogin").onclick = async () => { await api("/api/login", {}); toast("Inicia sesión en la ventana de Brave y luego ciérrala"); };
+$("#btnNuevos").onclick = async () => { await api("/api/abrir_nuevos", {}); toast("Pon ahí las fotos nuevas y avísale a Claude"); };
+
+// Apariencia: temas y preferencias visuales
+const TEMAS = [
+  { id: "marino", nombre: "Marino", sub: "y oro", bg: "#0a1324", card: "#111e37", line: "#2a3d63", acento: "#c9a656" },
+  { id: "esmeralda", nombre: "Esmeralda", sub: "y oro", bg: "#08150f", card: "#10241b", line: "#285040", acento: "#cfae5e" },
+  { id: "borgona", nombre: "Borgoña", sub: "y cobre", bg: "#160a0f", card: "#241219", line: "#552c3c", acento: "#d9a87a" },
+  { id: "grafito", nombre: "Grafito", sub: "y plata", bg: "#0f1012", card: "#1a1b1e", line: "#3a3d44", acento: "#cfd4dc" },
+  { id: "marfil", nombre: "Marfil", sub: "claro", bg: "#f5f0e6", card: "#fffcf6", line: "#d3c8b2", acento: "#a07c2c" },
+  { id: "nordico", nombre: "Nórdico", sub: "claro", bg: "#f2f4f7", card: "#ffffff", line: "#c6cfda", acento: "#1f3d6e" },
+];
+const POR_DEFECTO = { tema: "marino", letra: "elegante", densidad: "comoda", esquinas: "redondeadas" };
+let apariencia = { ...POR_DEFECTO };
+try { Object.assign(apariencia, JSON.parse(localStorage.getItem("apariencia")) || {}); } catch {}
+
+$("#temas").innerHTML = TEMAS.map(t => `
+  <button class="tema" data-t="${t.id}" style="--acento:${t.acento}">
+    <span class="mini" style="background:${t.bg}">
+      <b style="background:linear-gradient(90deg,transparent,${t.acento},transparent)"></b>
+      <i style="background:${t.card};border-color:${t.acento}"></i><i style="background:${t.card};border-color:${t.line}"></i>
+    </span>
+    <span class="nombre">${t.nombre} <small>${t.sub}</small></span>
+  </button>`).join("");
+
+function aplicarApariencia() {
+  const html = document.documentElement;
+  for (const k of Object.keys(POR_DEFECTO)) html.dataset[k] = apariencia[k];
+  document.querySelectorAll(".tema").forEach(b => b.classList.toggle("on", b.dataset.t === apariencia.tema));
+  document.querySelectorAll(".opciones").forEach(g =>
+    g.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.v === apariencia[g.dataset.op])));
+  try { localStorage.setItem("apariencia", JSON.stringify(apariencia)); } catch {}
+}
+$("#temas").onclick = e => { const b = e.target.closest(".tema"); if (b) { apariencia.tema = b.dataset.t; aplicarApariencia(); } };
+document.querySelectorAll(".opciones").forEach(g => g.onclick = e => {
+  const b = e.target.closest("button"); if (b) { apariencia[g.dataset.op] = b.dataset.v; aplicarApariencia(); } });
+$("#btnTema").onclick = () => $("#dlgTema").showModal();
+function pintarIA() {
+  const ia = datos.ia || {};
+  $("#iaAuto").textContent = ia.auto ? "ON" : "";
+  $("#iaAutoChk").checked = !!ia.auto;
+  $("#iaProxima").textContent = ia.auto && ia.proxima ? "Próxima: " + ia.proxima.replace(/^\w+ /, "").slice(0, 16) : "";
+  const ocupado = datos.corriendo || ia.ocupado;
+  $("#iaAhora").disabled = $("#iaSimular").disabled = ocupado;
+  const el = $("#iaLog"), txt = (ia.log || []).join("\n") || "Todavía no hay revisiones.";
+  if (el.textContent !== txt) { el.textContent = txt; el.scrollTop = el.scrollHeight; }
+}
+$("#btnIA").onclick = () => { pintarIA(); $("#dlgIA").showModal(); };
+$("#cerrarIA").onclick = () => $("#dlgIA").close();
+$("#iaAutoChk").onchange = async e => {
+  const r = await api("/api/ia/auto", { activo: e.target.checked });
+  toast(r.ok ? (e.target.checked ? "Gestor automático activado" : "Gestor automático apagado") : "Error: " + r.error);
+  refrescar();
+};
+const iaCorrer = async simular => {
+  if (!simular && !confirm("El gestor va a renovar y, si toca, recrear anuncios en Facebook. ¿Seguir?")) return;
+  const r = await api("/api/ia/revisar", { simular });
+  toast(r.ok ? (simular ? "Simulando… mira el registro" : "Revisando… mira el registro") : r.error);
+  refrescar();
+};
+$("#iaSimular").onclick = () => iaCorrer(true);
+$("#iaAhora").onclick = () => iaCorrer(false);
+$("#cerrarTema").onclick = () => $("#dlgTema").close();
+$("#dlgTema").addEventListener("click", e => { if (e.target.id === "dlgTema") $("#dlgTema").close(); });
+$("#resetTema").onclick = () => { apariencia = { ...POR_DEFECTO }; aplicarApariencia(); };
+aplicarApariencia();
+
+refrescar();
+setInterval(refrescar, 2000);
+</script>
+</body>
+</html>

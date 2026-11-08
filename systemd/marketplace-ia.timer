@@ -1,0 +1,11 @@
+[Unit]
+Description=Revisar anuncios de Marketplace 2 veces al día
+
+[Timer]
+OnCalendar=*-*-* 10:00
+OnCalendar=*-*-* 17:00
+RandomizedDelaySec=45min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

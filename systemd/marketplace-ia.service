@@ -1,0 +1,10 @@
+[Unit]
+Description=Gestor IA de Marketplace (renueva / recrea anuncios)
+
+[Service]
+Type=oneshot
+# Cambia la ruta si clonaste el repositorio en otra carpeta
+WorkingDirectory=%h/marketplace-bot
+Environment=DISPLAY=:0 XAUTHORITY=%h/.Xauthority PYTHONIOENCODING=utf-8 PYTHONUNBUFFERED=1
+ExecStart=/bin/sh -c 'mkdir -p logs; echo "=== Revisión automática $(date "+%%d/%%m %%H:%%M") ===" >> logs/ia.log; exec .venv/bin/python revisar.py >> logs/ia.log 2>&1'
+TimeoutStartSec=3h

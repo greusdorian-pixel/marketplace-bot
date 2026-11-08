@@ -1,0 +1,26 @@
+# --- Datos privados: NUNCA se suben ---
+/productos.json
+/publicados.json
+/negocio.json
+/config_ia.json
+/telegram.json
+clave_panel.txt
+/chats.json
+/historial_ia.json
+/estilo_conversaciones.json
+/estilo_dueno.json
+/tg_*.json
+perfil-brave/
+fotos/
+nuevos/
+logs/
+*.bak
+*.bak2
+*.antes_*
+*.tmp
+catalogo*.html
+*.pdf
+# --- Python ---
+.venv/
+__pycache__/
+*.pyc
